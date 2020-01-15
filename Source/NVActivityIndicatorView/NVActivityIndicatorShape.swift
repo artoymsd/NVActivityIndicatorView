@@ -39,6 +39,7 @@ enum NVActivityIndicatorShape {
     case line
     case pacman
     case stroke
+    case gradientCircle
 
     // swiftlint:disable:next cyclomatic_complexity function_body_length
     func layerWith(size: CGSize, color: UIColor) -> CALayer {
@@ -134,6 +135,28 @@ enum NVActivityIndicatorShape {
             path = UIBezierPath(roundedRect: CGRect(x: 0, y: 0, width: size.width, height: size.height),
                                 cornerRadius: size.width / 2)
             layer.fillColor = color.cgColor
+        case .gradientCircle:
+          layer.backgroundColor = nil
+          layer.masksToBounds = true
+          if #available(iOS 12.0, *) {
+            let gradientLayer = CAGradientLayer()
+            gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.5)
+            gradientLayer.endPoint = CGPoint(x: 1, y: 0.5)
+            gradientLayer.type = .conic
+            gradientLayer.colors = [color.withAlphaComponent(0).cgColor, color.withAlphaComponent(0.25).cgColor, color.withAlphaComponent(0.5).cgColor, color.withAlphaComponent(0.75).cgColor, color.withAlphaComponent(1).cgColor]
+            gradientLayer.locations = [NSNumber(value: 0.0), NSNumber(value: 0.25), NSNumber(value: 0.5), NSNumber(value: 0.75), NSNumber(value: 1)]
+            gradientLayer.frame = layer.frame
+            gradientLayer.cornerRadius = size.width/2
+            layer.addSublayer(gradientLayer)
+          } else {
+            let gradientLayer = ConicalGradientLayer()
+            gradientLayer.startAngle = 0.25
+            gradientLayer.colors = [color.withAlphaComponent(0), color.withAlphaComponent(0.25), color.withAlphaComponent(0.5), color.withAlphaComponent(0.75), color.withAlphaComponent(1)]
+            gradientLayer.locations = [ 0.0, 0.25, 0.5, 0.75, 1]
+            gradientLayer.frame = layer.frame
+            gradientLayer.cornerRadius = size.width/2
+            layer.addSublayer(gradientLayer)
+          }
         case .pacman:
             path.addArc(withCenter: CGPoint(x: size.width / 2, y: size.height / 2),
                         radius: size.width / 4,
